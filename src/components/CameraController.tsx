@@ -38,9 +38,10 @@ function lerpAngle(a: number, b: number, t: number): number {
 
 interface Props {
   mode: CameraMode;
+  onPinchChange?: (pinching: boolean) => void;
 }
 
-export default function CameraController({ mode }: Props) {
+export default function CameraController({ mode, onPinchChange }: Props) {
   const { camera } = useThree();
   const { position } = useISSPosition();
 
@@ -67,6 +68,7 @@ export default function CameraController({ mode }: Props) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       lastPinchDist.current = Math.sqrt(dx * dx + dy * dy);
+      onPinchChange?.(true);
     };
 
     const onTouchMove = (e: TouchEvent) => {
@@ -82,7 +84,10 @@ export default function CameraController({ mode }: Props) {
       lastPinchDist.current = dist;
     };
 
-    const onTouchEnd = () => { lastPinchDist.current = null; };
+    const onTouchEnd = () => {
+      lastPinchDist.current = null;
+      onPinchChange?.(false);
+    };
 
     window.addEventListener('wheel',      onWheel,      { passive: true });
     window.addEventListener('touchstart', onTouchStart, { passive: true });

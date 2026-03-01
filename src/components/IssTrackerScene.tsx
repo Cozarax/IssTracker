@@ -17,6 +17,7 @@ export default function IssTrackerScene() {
   const [showCountryTracking, setShowCountryTracking] = useState(true);
   const [cameraMode,          setCameraMode]          = useState<CameraMode>('track');
   const [debugPaused,         setDebugPaused]         = useState(false);
+  const [isPinching,          setIsPinching]          = useState(false);
 
   return (
     <ISSPositionProvider intervalMs={4000} paused={debugPaused}>
@@ -35,10 +36,10 @@ export default function IssTrackerScene() {
         <ShootingStars />
         <GlobeWithISS variant='realistic' showOrbit={showOrbit} showCountryTracking={showCountryTracking} />
 
-        <CameraController mode={cameraMode} />
+        <CameraController mode={cameraMode} onPinchChange={setIsPinching} />
 
         <OrbitControls
-          enabled={cameraMode === 'free'}
+          enabled={cameraMode === 'free' && !isPinching}
           enableDamping
           dampingFactor={0.1}
           rotateSpeed={0.5}
