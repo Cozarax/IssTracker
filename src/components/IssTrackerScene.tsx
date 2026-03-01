@@ -7,10 +7,11 @@ import Starfield from './Starfield.tsx';
 import IssHud from './IssHud.tsx';
 import CameraController, { type CameraMode } from './CameraController.tsx';
 import IssLoadingScreen from './IssLoadingScreen.tsx';
+import ShootingStars from './ShootingStars.tsx';
 
 export default function IssTrackerScene() {
-  const [showOrbit,  setShowOrbit]  = useState(true);
-  const [cameraMode, setCameraMode] = useState<CameraMode>('free');
+  const [showOrbit,  setShowOrbit]  = useState(false);
+  const [cameraMode, setCameraMode] = useState<CameraMode>('track');
 
   return (
     <Suspense fallback={<IssLoadingScreen />}>
@@ -24,6 +25,7 @@ export default function IssTrackerScene() {
         <directionalLight position={[5, 3, 5]} intensity={1.5} />
 
         <Starfield />
+        <ShootingStars />
         <GlobeWithISS variant='realistic' showOrbit={showOrbit} />
 
         <CameraController mode={cameraMode} />
@@ -33,8 +35,8 @@ export default function IssTrackerScene() {
           enableDamping
           dampingFactor={0.1}
           rotateSpeed={0.5}
-          minDistance={0.70}
-          maxDistance={4.0}
+          enableZoom={false}
+          enablePan={false}
         />
 
         <EffectComposer>

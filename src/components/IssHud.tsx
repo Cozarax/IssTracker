@@ -46,6 +46,10 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           0%,100% { opacity: 1;   box-shadow: 0 0 6px rgba(255,255,255,0.8); }
           50%     { opacity: 0.3; box-shadow: 0 0 2px rgba(255,255,255,0.3); }
         }
+        @keyframes hud-pulse-green {
+          0%,100% { opacity: 1;   box-shadow: 0 0 6px rgba(74,222,128,0.9); }
+          50%     { opacity: 0.4; box-shadow: 0 0 2px rgba(74,222,128,0.4); }
+        }
         @keyframes hud-blink {
           0%,49% { opacity: 1; }
           50%,100%{ opacity: 0; }
@@ -71,50 +75,20 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           transform: translateY(-50%);
         }
 
-        /* ── outer wrapper for corner brackets ── */
+        /* ── outer frame — bordure arrondie complète ── */
         .hud-frame {
           position: relative;
-          padding: 3px;
-        }
-        .hud-frame::before,
-        .hud-frame::after,
-        .hud-bracket-bl::before,
-        .hud-bracket-tr::before {
-          content: '';
-          position: absolute;
-          width: 14px;
-          height: 14px;
-        }
-        /* top-left */
-        .hud-frame::before {
-          top: 0; left: 0;
-          border-top: 1px solid rgba(255,255,255,0.9);
-          border-left: 1px solid rgba(255,255,255,0.9);
-        }
-        /* bottom-right */
-        .hud-frame::after {
-          bottom: 0; right: 0;
-          border-bottom: 1px solid rgba(255,255,255,0.9);
-          border-right: 1px solid rgba(255,255,255,0.9);
-        }
-        /* top-right */
-        .hud-bracket-tr::before {
-          top: 0; right: 0;
-          border-top: 1px solid rgba(255,255,255,0.3);
-          border-right: 1px solid rgba(255,255,255,0.3);
-        }
-        /* bottom-left */
-        .hud-bracket-bl::before {
-          bottom: 0; left: 0;
-          border-bottom: 1px solid rgba(255,255,255,0.3);
-          border-left: 1px solid rgba(255,255,255,0.3);
+          padding: 2px;
+          border: 1px solid rgba(255,255,255,0.45);
+          border-radius: 10px;
         }
 
         /* ── inner panel ── */
         .hud-panel {
           position: relative;
           background: rgba(2, 4, 10, 0.65);
-          border: 1px solid rgba(255,255,255,0.14);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 8px;
           backdrop-filter: blur(8px);
           overflow: hidden;
           min-width: 260px;
@@ -140,6 +114,7 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
         .hud-header {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 9px;
           padding: 14px 20px 12px;
           border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -252,13 +227,13 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           transition: background 0.2s, box-shadow 0.2s;
         }
         .hud-led.on {
-          background: #ffffff;
-          box-shadow: 0 0 7px rgba(255,255,255,0.9);
-          animation: hud-pulse 2.2s ease-in-out infinite;
+          background: #4ade80;
+          box-shadow: 0 0 7px rgba(74,222,128,0.9);
+          animation: hud-pulse-green 2.2s ease-in-out infinite;
         }
         .hud-led.off {
-          background: rgba(255,255,255,0.15);
-          box-shadow: none;
+          background: #f87171;
+          box-shadow: 0 0 5px rgba(248,113,113,0.6);
         }
 
         /* ── camera mode selector ── */
@@ -291,6 +266,7 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           text-transform: uppercase;
           padding: 4px 9px;
           border: 1px solid rgba(255,255,255,0.18);
+          border-radius: 4px;
           background: none;
           cursor: pointer;
           transition: background 0.15s, border-color 0.15s, color 0.15s;
@@ -309,8 +285,6 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
 
       <div className={`hud-root${mounted ? ' hud-visible' : ''}`}>
         <div className="hud-frame">
-          <div className="hud-bracket-tr" />
-          <div className="hud-bracket-bl" />
 
           <div className="hud-panel">
 
@@ -368,13 +342,13 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
                     className={`hud-cam-btn ${cameraMode === 'free' ? 'active' : ''}`}
                     onClick={() => onSetCameraMode('free')}
                   >
-                    Libre
+                    Free
                   </button>
                   <button
                     className={`hud-cam-btn ${cameraMode === 'track' ? 'active' : ''}`}
                     onClick={() => onSetCameraMode('track')}
                   >
-                    Suivi ISS
+                    Track ISS
                   </button>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import useISSPosition from './IssTracker/Iss/IssPosition';
@@ -7,12 +7,14 @@ import latLngToVector3 from '../utils/latLngToVector3';
 export type CameraMode = 'free' | 'track';
 
 const ROTATION_SPEED = (2 * Math.PI) / 86164;
-const GLOBE_SCALE    = 0.005;             // 0.5 / 100
-const ISS_WORLD_R    = 115 * GLOBE_SCALE; // ≈ 0.575
+const GLOBE_SCALE    = 0.005;
+const ISS_WORLD_R    = 115 * GLOBE_SCALE;
 
-// Camera distance in track mode — légèrement dezoomé
 const TRACK_DIST  = 1.4;
 const LERP_SPEED  = 1.6;
+const MIN_DIST    = 0.65;
+const MAX_DIST    = 4.0;
+const ZOOM_SPEED  = 0.001;
 
 function earthRotationNow(): number {
   const now = new Date();
@@ -23,10 +25,6 @@ function earthRotationNow(): number {
   return s * ROTATION_SPEED;
 }
 
-/**
- * Interpolation angulaire sur le chemin le plus court (évite de traverser 360°).
- * Indispensable pour theta qui peut être n'importe quelle valeur.
- */
 function lerpAngle(a: number, b: number, t: number): number {
   let diff = b - a;
   while (diff >  Math.PI) diff -= Math.PI * 2;
@@ -42,38 +40,59 @@ export default function CameraController({ mode }: Props) {
   const { camera } = useThree();
   const { position } = useISSPosition(4000);
 
-  const issVec    = useRef(new THREE.Vector3());
-  const Y_AXIS    = useRef(new THREE.Vector3(0, 1, 0));
-  // Réutilisés chaque frame pour éviter les allocations GC
-  const currSph   = useRef(new THREE.Spherical());
-  const targetSph = useRef(new THREE.Spherical());
-  const tempVec   = useRef(new THREE.Vector3());
+  const issVec       = useRef(new THREE.Vector3());
+  const Y_AXIS       = useRef(new THREE.Vector3(0, 1, 0));
+  const currSph      = useRef(new THREE.Spherical());
+  const targetSph    = useRef(new THREE.Spherical());
+  const tempVec      = useRef(new THREE.Vector3());
+  // Rayon cible partagé entre les deux modes
+  const targetRadius = useRef(TRACK_DIST);
 
+  // Molette active dans les deux modes — OrbitControls zoom est désactivé
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      targetRadius.current = THREE.MathUtils.clamp(
+        targetRadius.current + e.deltaY * ZOOM_SPEED,
+        MIN_DIST,
+        MAX_DIST
+      );
+    };
+    window.addEventListener('wheel', onWheel, { passive: true });
+    return () => window.removeEventListener('wheel', onWheel);
+  }, []);
+
+  // Priority 1 → s'exécute APRÈS OrbitControls (priority 0)
+  // En mode free : OrbitControls gère la direction, on override uniquement le rayon
+  // En mode track : on contrôle entièrement la caméra
   useFrame((_, delta) => {
-    if (mode !== 'track' || !position) return;
-
-    // 1. Position ISS en world space
-    issVec.current.copy(
-      latLngToVector3({ lat: position.lat, lng: position.lng }, ISS_WORLD_R)
-    );
-    issVec.current.applyAxisAngle(Y_AXIS.current, earthRotationNow());
-
-    // 2. Cible : même direction que l'ISS, à TRACK_DIST de l'origine
-    tempVec.current.copy(issVec.current).normalize().multiplyScalar(TRACK_DIST);
-    targetSph.current.setFromVector3(tempVec.current);
-
-    // 3. Caméra courante → sphériques
-    currSph.current.setFromVector3(camera.position);
-
-    // 4. Interpolation SPHÉRIQUE — la caméra contourne le globe, ne le traverse pas
     const t = Math.min(1, LERP_SPEED * delta);
-    currSph.current.phi    = THREE.MathUtils.lerp(currSph.current.phi,   targetSph.current.phi, t);
-    currSph.current.theta  = lerpAngle(currSph.current.theta, targetSph.current.theta, t);
-    currSph.current.radius = THREE.MathUtils.lerp(currSph.current.radius, TRACK_DIST,  t);
 
-    camera.position.setFromSpherical(currSph.current);
-    camera.lookAt(0, 0, 0);
-  });
+    if (mode === 'track' && position) {
+      // ── Track ISS ─────────────────────────────────────────────────────────
+      issVec.current.copy(
+        latLngToVector3({ lat: position.lat, lng: position.lng }, ISS_WORLD_R)
+      );
+      issVec.current.applyAxisAngle(Y_AXIS.current, earthRotationNow());
+
+      tempVec.current.copy(issVec.current).normalize().multiplyScalar(targetRadius.current);
+      targetSph.current.setFromVector3(tempVec.current);
+
+      currSph.current.setFromVector3(camera.position);
+      currSph.current.phi    = THREE.MathUtils.lerp(currSph.current.phi,   targetSph.current.phi,   t);
+      currSph.current.theta  = lerpAngle(currSph.current.theta, targetSph.current.theta, t);
+      currSph.current.radius = THREE.MathUtils.lerp(currSph.current.radius, targetRadius.current,   t);
+
+      camera.position.setFromSpherical(currSph.current);
+      camera.lookAt(0, 0, 0);
+
+    } else if (mode === 'free') {
+      // ── Free — OrbitControls gère phi/theta, on lerp uniquement le rayon ──
+      const currentLen = camera.position.length();
+      if (currentLen < 0.001) return;
+      const newLen = THREE.MathUtils.lerp(currentLen, targetRadius.current, t);
+      camera.position.setLength(newLen);
+    }
+  }, 1); // priority 1 = après OrbitControls
 
   return null;
 }
