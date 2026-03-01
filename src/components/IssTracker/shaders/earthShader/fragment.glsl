@@ -1,7 +1,7 @@
 uniform sampler2D uDayTexture;
 uniform sampler2D uNightTexture;
-uniform sampler2D uSpecularCloudsTexture;    
-uniform vec3 uSunDirection; 
+uniform sampler2D uSpecularCloudsTexture;
+uniform vec3 uSunDirection;
 uniform vec3 uAtmosphereDayColor;
 uniform vec3 uAtmospherTwilightColor;
 
@@ -16,9 +16,9 @@ void main()
     vec3 normal = normalize(vNormal);
     vec3 color = vec3(0.0);
 
-    //sunOrientation
-    float sunOrientation = dot(normalize(uSunDirection), normal); // ✅ utilise le vrai uniform
-    
+    // sunOrientation : uSunDirection et vNormal sont tous les deux en espace monde
+    float sunOrientation = dot(normalize(uSunDirection), normal);
+
 
     //Day / night color
     float dayMix = smoothstep(-0.05, 0.5, sunOrientation);
@@ -28,7 +28,7 @@ void main()
 
     //Clouds color
     vec2 specularCloudsColor = texture(uSpecularCloudsTexture, vUv).rg;
-   
+
     //Clouds
     float cloudsMix = smoothstep(0.5, 1.0, specularCloudsColor.g);
     cloudsMix *= dayMix;
@@ -47,18 +47,15 @@ void main()
     vec3 lightDir = normalize(uSunDirection);
     vec3 reflectDir = reflect(-lightDir, normal);
     float specAngle =  - (dot(reflectDir, viewDirection));
-    specAngle = max(specAngle, 0.0); 
-    float specular = pow(specAngle, 64.0); // 32 à 128 = zone fine, brillante
+    specAngle = max(specAngle, 0.0);
+    float specular = pow(specAngle, 64.0);
     specular *= specularCloudsColor.r;
+    specular *= dayMix; // pas de reflet dans la nuit
     vec3 specularColor = mix(vec3(1.0), atmosphereColor, fresnel);
 
     color += specular * specularColor;
 
-
-
-
-
-    // Final color  
+    // Final color
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>

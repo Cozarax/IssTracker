@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import ThreeGlobe from 'three-globe';
 import useEarthTextures from '../Hooks/useEarthTextures';
@@ -18,22 +19,30 @@ const atmosphereParams = {
   twilightColor: '#b03a10'
 };
 
+// Axe Y fixe pour la rotation (réutilisé chaque frame, pas de réallocation)
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+
 const RealisticGlobeContent: React.FC<Props> = ({ globe }) => {
   const textures = useEarthTextures();
 
+  // Direction solaire en espace géographique local (avant rotation du groupe globe).
+  // Mise à jour par SunCalc toutes les minutes via useRealSunDirection.
   const sunDirection = useMemo(() => new THREE.Vector3(0, 0, 1), []);
+
+  // Vecteur de travail réutilisé chaque frame pour éviter les allocations
+  const rotatedSun = useMemo(() => new THREE.Vector3(), []);
 
   const uniforms = useMemo(
     () => ({
       uDayTexture: new THREE.Uniform(textures.earthDayTexture),
       uNightTexture: new THREE.Uniform(textures.earthNightTexture),
       uSpecularCloudsTexture: new THREE.Uniform(textures.specularCloudsTexture),
-      uSunDirection: new THREE.Uniform(sunDirection.clone()),
+      uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
       uAtmosphereDayColor: new THREE.Uniform(new THREE.Color(atmosphereParams.dayColor)),
       uAtmospherTwilightColor: new THREE.Uniform(new THREE.Color(atmosphereParams.twilightColor))
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [textures, sunDirection]
+    [textures]
   );
 
   const material = useMemo(
@@ -47,11 +56,11 @@ const RealisticGlobeContent: React.FC<Props> = ({ globe }) => {
 
   const atmosphereUniforms = useMemo(
     () => ({
-      uSunDirection: new THREE.Uniform(sunDirection.clone()),
+      uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
       uAtmosphereDayColor: new THREE.Uniform(new THREE.Color(atmosphereParams.dayColor)),
       uAtmospherTwilightColor: new THREE.Uniform(new THREE.Color(atmosphereParams.twilightColor))
     }),
-    [sunDirection]
+    []
   );
 
   const atmosphereGeometry = useMemo(() => new THREE.SphereGeometry(100, 64, 64), []);
@@ -72,13 +81,22 @@ const RealisticGlobeContent: React.FC<Props> = ({ globe }) => {
     return mesh;
   }, [atmosphereGeometry, atmosphereMaterial]);
 
-  const updateSun = useCallback(() => {
-    uniforms.uSunDirection.value.copy(sunDirection);
-    atmosphereMaterial.uniforms.uSunDirection.value.copy(sunDirection);
-  }, [sunDirection, uniforms, atmosphereMaterial]);
+  // SunCalc met à jour sunDirection (espace géographique) toutes les minutes.
+  // Le callback vide est intentionnel : c'est useFrame qui pousse vers les uniforms.
+  const noop = useCallback(() => {}, []);
+  useRealSunDirection(sunDirection, noop);
 
-  // ☀️ Position solaire réelle depuis suncalc, mise à jour toutes les minutes
-  useRealSunDirection(sunDirection, updateSun);
+  // ☀️ Chaque frame : convertit sunDirection (espace géographique) → espace monde
+  // en appliquant la même rotation Y que le groupe globe.
+  // Ainsi uSunDirection et vNormal sont tous les deux en espace monde → dot correct.
+  useFrame(() => {
+    if (!globe.parent) return;
+    rotatedSun
+      .copy(sunDirection)
+      .applyAxisAngle(Y_AXIS, globe.parent.rotation.y);
+    uniforms.uSunDirection.value.copy(rotatedSun);
+    atmosphereMaterial.uniforms.uSunDirection.value.copy(rotatedSun);
+  });
 
   const atmosphereParameters = useMemo(() => ({
     atmosphereDayColor: atmosphereParams.dayColor,
@@ -97,14 +115,12 @@ const RealisticGlobeContent: React.FC<Props> = ({ globe }) => {
     globe.globeMaterial(material);
     globe.add(atmosphere);
 
-    updateSun();
-
     return () => {
       globe.remove(atmosphere);
       atmosphere.geometry.dispose();
       (atmosphere.material as THREE.Material).dispose();
     };
-  }, [globe, material, atmosphere, updateSun]);
+  }, [globe, material, atmosphere]);
 
   return null;
 };

@@ -1,4 +1,4 @@
-uniform vec3 uSunDirection; 
+uniform vec3 uSunDirection;
 uniform vec3 uAtmosphereDayColor;
 uniform vec3 uAtmospherTwilightColor;
 
@@ -11,7 +11,7 @@ void main()
     vec3 normal = normalize(vNormal);
     vec3 color = vec3(0.0);
 
-    //sunOrientation
+    // sunOrientation : uSunDirection et vNormal sont tous les deux en espace monde
     float sunOrientation = dot(normalize(uSunDirection), normal);
 
     //Atmosphere
@@ -19,7 +19,7 @@ void main()
     vec3 atmosphereColor = mix(uAtmospherTwilightColor, uAtmosphereDayColor, atmosphereDayMix);
     color +=  atmosphereColor;
 
-    // Alpha 
+    // Alpha
     float edgeAlpha = dot(viewDirection, normal);
     edgeAlpha = smoothstep(0.0, 0.5, edgeAlpha);
 
@@ -27,8 +27,7 @@ void main()
 
     float alpha = edgeAlpha * dayAlpha;
 
-
-    // Final color  
+    // Final color
     gl_FragColor = vec4(color, alpha);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
