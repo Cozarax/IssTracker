@@ -3,11 +3,11 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 // ── configuration ──────────────────────────────────────────────────────────
-const POOL_SIZE    = 5;   // étoiles filantes simultanées max
-const TRAIL_POINTS = 28;  // points dans la traîne
-const SPHERE_R     = 175; // rayon de la sphère sur laquelle elles apparaissent
-const SPAWN_MIN    = 1.8; // secondes min entre deux apparitions
-const SPAWN_MAX    = 7.0; // secondes max entre deux apparitions
+const POOL_SIZE    = 5;    // étoiles filantes simultanées max
+const TRAIL_POINTS = 48;   // points dans la traîne (plus pour les longues distances)
+const SPHERE_R     = 175;  // rayon de la sphère sur laquelle elles apparaissent
+const SPAWN_MIN    = 1.8;  // secondes min entre deux apparitions
+const SPAWN_MAX    = 7.0;  // secondes max entre deux apparitions
 
 // Vecteurs statiques pour le spawning (hors frame)
 const _n  = new THREE.Vector3();
@@ -115,9 +115,9 @@ export default function ShootingStars() {
         spawnOnSphere(SPHERE_R, slot.startPos);
         tangentDir(slot.startPos, slot.dir);
         slot.progress    = 0;
-        slot.duration    = 0.55 + Math.random() * 0.75;
-        slot.totalDist   = 18  + Math.random() * 22;
-        slot.trailLength = 7   + Math.random() * 14;
+        slot.duration    = 1.2 + Math.random() * 2.0;
+        slot.totalDist   = 60  + Math.random() * 120;
+        slot.trailLength = 20  + Math.random() * 40;
         slot.active      = true;
         slot.line.visible = true;
       }

@@ -10,11 +10,16 @@ const ROTATION_SPEED = (2 * Math.PI) / 86164;
 const GLOBE_SCALE    = 0.005;
 const ISS_WORLD_R    = 115 * GLOBE_SCALE;
 
-const TRACK_DIST  = 1.4;
-const LERP_SPEED  = 1.6;
-const MIN_DIST    = 0.65;
-const MAX_DIST    = 4.0;
-const ZOOM_SPEED  = 0.001;
+const TRACK_DIST        = 1.4;
+const TRACK_DIST_MOBILE = 2.2;  // plus dezoomé sur mobile
+const LERP_SPEED        = 1.6;
+const MIN_DIST          = 0.65;
+const MAX_DIST          = 4.0;
+const ZOOM_SPEED        = 0.001;
+const PINCH_SPEED       = 0.007;
+
+const isMobile = typeof window !== 'undefined' &&
+  ('ontouchstart' in window || window.innerWidth <= 768);
 
 function earthRotationNow(): number {
   const now = new Date();
@@ -38,27 +43,58 @@ interface Props {
 
 export default function CameraController({ mode }: Props) {
   const { camera } = useThree();
-  const { position } = useISSPosition(4000);
+  const { position } = useISSPosition();
 
   const issVec       = useRef(new THREE.Vector3());
   const Y_AXIS       = useRef(new THREE.Vector3(0, 1, 0));
   const currSph      = useRef(new THREE.Spherical());
   const targetSph    = useRef(new THREE.Spherical());
   const tempVec      = useRef(new THREE.Vector3());
-  // Rayon cible partagé entre les deux modes
-  const targetRadius = useRef(TRACK_DIST);
+  // Rayon initial selon le device
+  const targetRadius    = useRef(isMobile ? TRACK_DIST_MOBILE : TRACK_DIST);
+  const lastPinchDist   = useRef<number | null>(null);
 
-  // Molette active dans les deux modes — OrbitControls zoom est désactivé
+  // Molette (desktop) + pinch (mobile)
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
       targetRadius.current = THREE.MathUtils.clamp(
         targetRadius.current + e.deltaY * ZOOM_SPEED,
-        MIN_DIST,
-        MAX_DIST
+        MIN_DIST, MAX_DIST
       );
     };
-    window.addEventListener('wheel', onWheel, { passive: true });
-    return () => window.removeEventListener('wheel', onWheel);
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastPinchDist.current = Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 2 || lastPinchDist.current === null) return;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist  = Math.sqrt(dx * dx + dy * dy);
+      const delta = lastPinchDist.current - dist; // positif = pinch in = dezoom
+      targetRadius.current = THREE.MathUtils.clamp(
+        targetRadius.current + delta * PINCH_SPEED,
+        MIN_DIST, MAX_DIST
+      );
+      lastPinchDist.current = dist;
+    };
+
+    const onTouchEnd = () => { lastPinchDist.current = null; };
+
+    window.addEventListener('wheel',      onWheel,      { passive: true });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove',  onTouchMove,  { passive: true });
+    window.addEventListener('touchend',   onTouchEnd);
+    return () => {
+      window.removeEventListener('wheel',      onWheel);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove',  onTouchMove);
+      window.removeEventListener('touchend',   onTouchEnd);
+    };
   }, []);
 
   // Priority 1 → s'exécute APRÈS OrbitControls (priority 0)

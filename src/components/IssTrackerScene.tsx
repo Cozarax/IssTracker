@@ -8,16 +8,19 @@ import IssHud from './IssHud.tsx';
 import CameraController, { type CameraMode } from './CameraController.tsx';
 import IssLoadingScreen from './IssLoadingScreen.tsx';
 import ShootingStars from './ShootingStars.tsx';
+import { ISSPositionProvider } from './IssTracker/Iss/IssPosition.tsx';
 
 export default function IssTrackerScene() {
-  const [showOrbit,  setShowOrbit]  = useState(false);
-  const [cameraMode, setCameraMode] = useState<CameraMode>('track');
+  const [showOrbit,    setShowOrbit]    = useState(false);
+  const [cameraMode,   setCameraMode]   = useState<CameraMode>('track');
+  const [debugPaused,  setDebugPaused]  = useState(false);
 
   return (
+    <ISSPositionProvider intervalMs={4000} paused={debugPaused}>
     <Suspense fallback={<IssLoadingScreen />}>
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Canvas
-        camera={{ position: [0, 0, 2.7], fov: 50 }}
+        camera={{ position: [0, 0, typeof window !== 'undefined' && window.innerWidth <= 768 ? 3.8 : 2.7], fov: 50 }}
         dpr={[1, 2]}
       >
         <color attach="background" args={['#000005']} />
@@ -54,8 +57,11 @@ export default function IssTrackerScene() {
         onToggleOrbit={() => setShowOrbit(v => !v)}
         cameraMode={cameraMode}
         onSetCameraMode={setCameraMode}
+        debugPaused={debugPaused}
+        onToggleDebugPause={() => setDebugPaused(v => !v)}
       />
     </div>
     </Suspense>
+    </ISSPositionProvider>
   );
 }

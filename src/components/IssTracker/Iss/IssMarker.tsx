@@ -29,7 +29,7 @@ const ISSMarker: React.FC<Props> = ({ globeRadius = 100, altitude = 15 }) => {
   const prevLatLng  = useRef<{ lat: number; lng: number } | null>(null);
 
   const { scene }    = useGLTF('/models/iss.glb');
-  const { position } = useISSPosition(4000);
+  const { position } = useISSPosition();
 
   useFrame(({ clock }) => {
     if (!groupRef.current || !position) return;

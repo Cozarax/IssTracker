@@ -7,6 +7,8 @@ interface IssHudProps {
   onToggleOrbit: () => void;
   cameraMode: CameraMode;
   onSetCameraMode: (mode: CameraMode) => void;
+  debugPaused: boolean;
+  onToggleDebugPause: () => void;
 }
 
 function fmt(val: number | undefined, dec: number): string {
@@ -19,8 +21,38 @@ function sign(val: number | undefined): string {
   return val >= 0 ? '+' : '';
 }
 
-export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCameraMode }: IssHudProps) {
-  const { position, loading } = useISSPosition(4000);
+// ── Mobile icons ───────────────────────────────────────────────────────────────
+const OrbitIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <ellipse cx="8" cy="8" rx="7" ry="3.5" stroke="currentColor" strokeWidth="1" />
+    <ellipse cx="8" cy="8" rx="3.5" ry="7" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+    <circle cx="13" cy="8" r="1.5" fill="currentColor" />
+  </svg>
+);
+
+const CrosshairIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1" />
+    <line x1="8" y1="1" x2="8" y2="4" stroke="currentColor" strokeWidth="1" />
+    <line x1="8" y1="12" x2="8" y2="15" stroke="currentColor" strokeWidth="1" />
+    <line x1="1" y1="8" x2="4" y2="8" stroke="currentColor" strokeWidth="1" />
+    <line x1="12" y1="8" x2="15" y2="8" stroke="currentColor" strokeWidth="1" />
+  </svg>
+);
+
+const TargetIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1" />
+    <circle cx="8" cy="8" r="2" fill="currentColor" />
+    <line x1="8" y1="1" x2="8" y2="4" stroke="currentColor" strokeWidth="1" />
+    <line x1="8" y1="12" x2="8" y2="15" stroke="currentColor" strokeWidth="1" />
+    <line x1="1" y1="8" x2="4" y2="8" stroke="currentColor" strokeWidth="1" />
+    <line x1="12" y1="8" x2="15" y2="8" stroke="currentColor" strokeWidth="1" />
+  </svg>
+);
+
+export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCameraMode, debugPaused, onToggleDebugPause }: IssHudProps) {
+  const { position, loading } = useISSPosition();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -32,6 +64,10 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        /* ════════════════════════════════════════════════════
+           DESKTOP HUD (> 768px) — panneau complet côté gauche
+           ════════════════════════════════════════════════════ */
 
         @keyframes hud-enter {
           from { opacity: 0; transform: translateY(-50%) translateX(-12px); }
@@ -68,6 +104,7 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           pointer-events: none;
           font-family: 'Share Tech Mono', 'Courier New', monospace;
           opacity: 0;
+          display: block;
         }
         .hud-root.hud-visible {
           animation: hud-enter 0.5s 0.2s ease both;
@@ -75,15 +112,12 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           transform: translateY(-50%);
         }
 
-        /* ── outer frame — bordure arrondie complète ── */
         .hud-frame {
           position: relative;
           padding: 2px;
           border: 1px solid rgba(255,255,255,0.45);
           border-radius: 10px;
         }
-
-        /* ── inner panel ── */
         .hud-panel {
           position: relative;
           background: rgba(2, 4, 10, 0.65);
@@ -93,8 +127,6 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           overflow: hidden;
           min-width: 260px;
         }
-
-        /* scanlines */
         .hud-panel::after {
           content: '';
           position: absolute;
@@ -102,15 +134,13 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           pointer-events: none;
           background: repeating-linear-gradient(
             0deg,
-            transparent,
-            transparent 2px,
+            transparent, transparent 2px,
             rgba(255,255,255,0.018) 2px,
             rgba(255,255,255,0.018) 4px
           );
           animation: hud-scan 6s linear infinite;
         }
 
-        /* ── header ── */
         .hud-header {
           display: flex;
           align-items: center;
@@ -121,8 +151,7 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           animation: hud-flicker 9s ease-in-out infinite;
         }
         .hud-status-dot {
-          width: 6px;
-          height: 6px;
+          width: 6px; height: 6px;
           border-radius: 50%;
           flex-shrink: 0;
           background: #57fa00;
@@ -135,7 +164,6 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           text-transform: uppercase;
         }
 
-        /* ── data rows ── */
         .hud-body {
           padding: 14px 20px 12px;
           display: flex;
@@ -145,7 +173,6 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
         .hud-row {
           display: flex;
           align-items: baseline;
-          gap: 0;
         }
         .hud-lbl {
           font-size: 10px;
@@ -176,11 +203,8 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           letter-spacing: 0.22em;
           padding: 14px 20px 12px;
         }
-        .hud-loading span {
-          animation: hud-blink 1s step-end infinite;
-        }
+        .hud-loading span { animation: hud-blink 1s step-end infinite; }
 
-        /* ── orbit toggle ── */
         .hud-toggle-wrap {
           border-top: 1px solid rgba(255,255,255,0.08);
           pointer-events: all;
@@ -197,9 +221,7 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           font-family: 'Share Tech Mono', 'Courier New', monospace;
           transition: background 0.15s;
         }
-        .hud-toggle:hover {
-          background: rgba(255,255,255,0.04);
-        }
+        .hud-toggle:hover { background: rgba(255,255,255,0.04); }
         .hud-toggle-lbl {
           font-size: 10px;
           letter-spacing: 0.22em;
@@ -207,9 +229,7 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           text-transform: uppercase;
           transition: color 0.2s;
         }
-        .hud-toggle:hover .hud-toggle-lbl {
-          color: rgba(255,255,255,0.7);
-        }
+        .hud-toggle:hover .hud-toggle-lbl { color: rgba(255,255,255,0.7); }
         .hud-toggle-chip {
           display: flex;
           align-items: center;
@@ -221,8 +241,7 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
         .hud-toggle-chip.on  { color: rgba(255,255,255,0.85); }
         .hud-toggle-chip.off { color: rgba(255,255,255,0.2); }
         .hud-led {
-          width: 6px;
-          height: 6px;
+          width: 6px; height: 6px;
           border-radius: 50%;
           transition: background 0.2s, box-shadow 0.2s;
         }
@@ -236,7 +255,6 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           box-shadow: 0 0 5px rgba(248,113,113,0.6);
         }
 
-        /* ── camera mode selector ── */
         .hud-cam-wrap {
           border-top: 1px solid rgba(255,255,255,0.08);
           padding: 11px 20px 12px;
@@ -281,20 +299,263 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           border-color: rgba(255,255,255,0.75);
           color: rgba(255,255,255,0.95);
         }
+
+        /* ════════════════════════════════════════════════════
+           DEBUG BADGE — commun desktop + mobile
+           ════════════════════════════════════════════════════ */
+
+        @keyframes ghost-in {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes debug-pulse {
+          0%, 100% { box-shadow: 0 0 4px rgba(251,191,36,0.5); }
+          50%       { box-shadow: 0 0 8px rgba(251,191,36,0.8); }
+        }
+
+        .hud-debug {
+          position: fixed;
+          top: 16px;
+          right: 16px;
+          z-index: 101;
+          pointer-events: all;
+          opacity: 0;
+        }
+        .hud-debug.visible {
+          animation: ghost-in 0.5s 0.7s ease both;
+        }
+        .hud-debug-btn {
+          font-family: 'Share Tech Mono', 'Courier New', monospace;
+          font-size: 8px;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 10px 5px 8px;
+          border-radius: 20px;
+          border: 1px solid rgba(251,191,36,0.25);
+          background: rgba(0,0,0,0.3);
+          backdrop-filter: blur(4px);
+          cursor: pointer;
+          color: rgba(251,191,36,0.45);
+          transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, background 0.2s;
+          outline: none;
+        }
+        .hud-debug-btn:hover {
+          border-color: rgba(251,191,36,0.6);
+          color: rgba(251,191,36,0.9);
+          background: rgba(0,0,0,0.45);
+        }
+        .hud-debug-btn.paused {
+          border-color: rgba(251,191,36,0.6);
+          color: rgba(251,191,36,0.9);
+          box-shadow: 0 0 6px rgba(251,191,36,0.2);
+        }
+        .hud-debug-dot {
+          width: 5px; height: 5px;
+          border-radius: 50%;
+          background: currentColor;
+          flex-shrink: 0;
+        }
+        .hud-debug-btn:not(.paused) .hud-debug-dot {
+          animation: debug-pulse 1.8s ease-in-out infinite;
+        }
+
+        /* ════════════════════════════════════════════════════
+           MOBILE (≤ 768px) — ghost interface
+           ════════════════════════════════════════════════════ */
+
+        @keyframes mob-in-left {
+          from { opacity: 0; transform: translateX(-8px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes mob-in-right {
+          from { opacity: 0; transform: translateX(8px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes orbit-glow {
+          0%, 100% { box-shadow: 0 0 6px rgba(74,222,128,0.5); }
+          50%       { box-shadow: 0 0 12px rgba(74,222,128,0.8), 0 0 20px rgba(74,222,128,0.3); }
+        }
+
+        /* Masqué sur desktop, visible sur mobile */
+        .mob-panel { display: none; }
+        .mob-btns  { display: none; }
+
+        /* Masqué sur mobile, visible sur desktop */
+        @media (max-width: 768px) {
+          .hud-root  { display: none !important; }
+
+          /* ── Data panel — bas gauche ── */
+          .mob-panel {
+            display: block;
+            position: fixed;
+            bottom: calc(16px + env(safe-area-inset-bottom));
+            left: 16px;
+            /* Limite la largeur pour ne jamais toucher les boutons à droite */
+            max-width: calc(100vw - 90px);
+            background: rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+            padding: 8px 12px 7px;
+            z-index: 100;
+            pointer-events: none;
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            opacity: 0;
+          }
+          .mob-panel.visible {
+            animation: mob-in-left 0.5s 0.3s ease both;
+          }
+          .mob-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 7px;
+            letter-spacing: 0.32em;
+            color: rgba(255,255,255,0.22);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+          }
+          .mob-status-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #4ade80;
+            flex-shrink: 0;
+            animation: hud-pulse-green 2.2s ease-in-out infinite;
+          }
+          .mob-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+          }
+          .mob-row {
+            display: flex;
+            align-items: baseline;
+          }
+          .mob-lbl {
+            font-size: 8px;
+            letter-spacing: 0.2em;
+            color: rgba(255,255,255,0.22);
+            text-transform: uppercase;
+            width: 26px;
+            flex-shrink: 0;
+          }
+          .mob-val {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.04em;
+            flex: 1;
+            text-align: right;
+          }
+          .mob-unit {
+            font-size: 8px;
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 0.1em;
+            margin-left: 4px;
+            width: 20px;
+            flex-shrink: 0;
+          }
+
+          /* ── Icon buttons — bas droite ── */
+          .mob-btns {
+            display: flex;
+            position: fixed;
+            bottom: calc(16px + env(safe-area-inset-bottom));
+            right: 16px;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+            pointer-events: all;
+            opacity: 0;
+          }
+          .mob-btns.visible {
+            animation: mob-in-right 0.5s 0.5s ease both;
+          }
+          .mob-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
+            color: rgba(255,255,255,0.35);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+          }
+          .mob-btn:active {
+            background: rgba(255,255,255,0.08);
+          }
+          .mob-btn.orbit-off {
+            color: rgba(248,113,113,0.55);
+            border-color: rgba(248,113,113,0.25);
+          }
+          .mob-btn.orbit-on {
+            color: rgba(74,222,128,0.9);
+            border-color: rgba(74,222,128,0.45);
+            animation: orbit-glow 2.5s ease-in-out infinite;
+          }
+          .mob-btn.cam-track {
+            color: rgba(255,255,255,0.8);
+            border-color: rgba(255,255,255,0.45);
+          }
+
+          /* Tooltip mobile — à gauche des boutons */
+          .mob-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            right: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            color: rgba(255,255,255,0.6);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+          }
+          .mob-btn:hover::after { opacity: 1; }
+        }
       `}</style>
 
+      {/* ── DEBUG BADGE (tous écrans) ── */}
+      <div className={`hud-debug${mounted ? ' visible' : ''}`}>
+        <button
+          className={`hud-debug-btn${debugPaused ? ' paused' : ''}`}
+          onClick={onToggleDebugPause}
+          aria-label="Toggle API pause"
+        >
+          <span className="hud-debug-dot" />
+          {debugPaused ? 'API · PAUSED' : 'API · LIVE'}
+        </button>
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          DESKTOP — panneau complet gauche-centre
+          ══════════════════════════════════════════════════ */}
       <div className={`hud-root${mounted ? ' hud-visible' : ''}`}>
         <div className="hud-frame">
-
           <div className="hud-panel">
 
-            {/* Header */}
             <div className="hud-header">
               <div className="hud-status-dot" />
               <span className="hud-title">ISS · Tracking</span>
             </div>
 
-            {/* Data */}
             {loading && !position ? (
               <div className="hud-loading">Acquiring signal<span>_</span></div>
             ) : (
@@ -322,7 +583,6 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
               </div>
             )}
 
-            {/* Orbit toggle */}
             <div className="hud-toggle-wrap">
               <button className="hud-toggle" onClick={onToggleOrbit}>
                 <span className="hud-toggle-lbl">Orbit.Trace</span>
@@ -333,7 +593,6 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
               </button>
             </div>
 
-            {/* Camera mode */}
             <div className="hud-cam-wrap">
               <div className="hud-cam-row">
                 <span className="hud-cam-lbl">Cam.View</span>
@@ -341,21 +600,79 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
                   <button
                     className={`hud-cam-btn ${cameraMode === 'free' ? 'active' : ''}`}
                     onClick={() => onSetCameraMode('free')}
-                  >
-                    Free
-                  </button>
+                  >Free</button>
                   <button
                     className={`hud-cam-btn ${cameraMode === 'track' ? 'active' : ''}`}
                     onClick={() => onSetCameraMode('track')}
-                  >
-                    Track ISS
-                  </button>
+                  >Track ISS</button>
                 </div>
               </div>
             </div>
 
           </div>
         </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          MOBILE — data panel bas-gauche
+          ══════════════════════════════════════════════════ */}
+      <div className={`mob-panel${mounted ? ' visible' : ''}`}>
+        <div className="mob-panel-header">
+          <span className="mob-status-dot" />
+          ISS · Tracking
+        </div>
+        <div className="mob-rows">
+          <div className="mob-row">
+            <span className="mob-lbl">LAT</span>
+            <span className="mob-val">
+              {loading && !position ? '···' : `${sign(position?.lat)}${fmt(position?.lat, 3)}`}
+            </span>
+            <span className="mob-unit">°</span>
+          </div>
+          <div className="mob-row">
+            <span className="mob-lbl">LNG</span>
+            <span className="mob-val">
+              {loading && !position ? '···' : `${sign(position?.lng)}${fmt(position?.lng, 3)}`}
+            </span>
+            <span className="mob-unit">°</span>
+          </div>
+          <div className="mob-row">
+            <span className="mob-lbl">ALT</span>
+            <span className="mob-val">
+              {loading && !position ? '···' : fmt(position?.altitude, 0)}
+            </span>
+            <span className="mob-unit">km</span>
+          </div>
+          <div className="mob-row">
+            <span className="mob-lbl">VEL</span>
+            <span className="mob-val">
+              {loading && !position ? '···' : fmt(position?.velocity, 2)}
+            </span>
+            <span className="mob-unit">km/s</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          MOBILE — boutons icônes bas-droite
+          ══════════════════════════════════════════════════ */}
+      <div className={`mob-btns${mounted ? ' visible' : ''}`}>
+        <button
+          className={`mob-btn ${showOrbit ? 'orbit-on' : 'orbit-off'}`}
+          onClick={onToggleOrbit}
+          data-tooltip={showOrbit ? 'Orbit: ON' : 'Orbit: OFF'}
+          aria-label="Toggle orbit trace"
+        >
+          <OrbitIcon />
+        </button>
+        <button
+          className={`mob-btn ${cameraMode === 'track' ? 'cam-track' : ''}`}
+          onClick={() => onSetCameraMode(cameraMode === 'free' ? 'track' : 'free')}
+          data-tooltip={cameraMode === 'track' ? 'Track ISS' : 'Free View'}
+          aria-label="Toggle camera mode"
+        >
+          {cameraMode === 'track' ? <TargetIcon /> : <CrosshairIcon />}
+        </button>
       </div>
     </>
   );
