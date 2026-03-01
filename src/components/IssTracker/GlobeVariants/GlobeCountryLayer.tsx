@@ -4,6 +4,7 @@ import ThreeGlobe from 'three-globe';
 import { type ThreeEvent } from '@react-three/fiber';
 import useISSPosition from '../Iss/IssPosition';
 import useCountryDetection, { getFeatures, detectCountrySync, type GeoFeature } from '../../../hooks/useCountryDetection';
+import { useGlobeHover } from '../../../contexts/GlobeHoverContext';
 
 interface Props {
   globe: ThreeGlobe;
@@ -13,6 +14,7 @@ const GlobeCountryLayer: React.FC<Props> = ({ globe }) => {
   const { position: issPos } = useISSPosition();
   const { feature: issFeature } = useCountryDetection(issPos?.lat, issPos?.lng);
 
+  const { setHover } = useGlobeHover();
   const [hoverFeature, setHoverFeature] = useState<GeoFeature | null>(null);
   const hoverFeatureRef = useRef<GeoFeature | null>(null);
 
@@ -45,8 +47,8 @@ const GlobeCountryLayer: React.FC<Props> = ({ globe }) => {
   // Cleanup on unmount
   useEffect(() => () => {
     globe.polygonsData([]);
-    document.dispatchEvent(new CustomEvent('globe-hover', { detail: null }));
-  }, [globe]);
+    setHover(null);
+  }, [globe, setHover]);
 
   const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
     // Convert world-space intersection → group-local geographic space
@@ -58,12 +60,8 @@ const GlobeCountryLayer: React.FC<Props> = ({ globe }) => {
     // Synchronous lookup from cache (GeoJSON already loaded)
     const found = detectCountrySync(lat, lng);
 
-    // Always dispatch to keep tooltip position in sync with cursor
-    document.dispatchEvent(new CustomEvent('globe-hover', {
-      detail: found
-        ? { name: found.properties.name, x: e.clientX, y: e.clientY }
-        : null,
-    }));
+    // Always update to keep tooltip position in sync with cursor
+    setHover(found ? { name: found.properties.name, x: e.clientX, y: e.clientY } : null);
 
     // Only trigger React re-render when country actually changes
     if (found !== hoverFeatureRef.current) {
@@ -75,7 +73,7 @@ const GlobeCountryLayer: React.FC<Props> = ({ globe }) => {
   const onPointerLeave = () => {
     hoverFeatureRef.current = null;
     setHoverFeature(null);
-    document.dispatchEvent(new CustomEvent('globe-hover', { detail: null }));
+    setHover(null);
   };
 
   return (

@@ -1,21 +1,7 @@
-import { useEffect, useState } from 'react';
-
-interface HoverState {
-  name: string;
-  x: number;
-  y: number;
-}
+import { useGlobeHover } from '../contexts/GlobeHoverContext';
 
 export default function GlobeHoverTooltip() {
-  const [hover, setHover] = useState<HoverState | null>(null);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      setHover((e as CustomEvent<HoverState | null>).detail);
-    };
-    document.addEventListener('globe-hover', handler);
-    return () => document.removeEventListener('globe-hover', handler);
-  }, []);
+  const { hover } = useGlobeHover();
 
   if (!hover) return null;
 

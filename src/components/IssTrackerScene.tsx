@@ -10,6 +10,7 @@ import IssLoadingScreen from './IssLoadingScreen.tsx';
 import GlobeHoverTooltip from './GlobeHoverTooltip.tsx';
 import ShootingStars from './ShootingStars.tsx';
 import { ISSPositionProvider } from './IssTracker/Iss/IssPosition.tsx';
+import { GlobeHoverProvider } from '../contexts/GlobeHoverContext.tsx';
 
 export default function IssTrackerScene() {
   const [showOrbit,           setShowOrbit]           = useState(false);
@@ -19,6 +20,7 @@ export default function IssTrackerScene() {
 
   return (
     <ISSPositionProvider intervalMs={4000} paused={debugPaused}>
+    <GlobeHoverProvider>
     <Suspense fallback={<IssLoadingScreen />}>
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Canvas
@@ -67,6 +69,7 @@ export default function IssTrackerScene() {
       <GlobeHoverTooltip />
     </div>
     </Suspense>
+    </GlobeHoverProvider>
     </ISSPositionProvider>
   );
 }
