@@ -16,7 +16,7 @@ interface Props {
 
 const atmosphereParams = {
   dayColor: '#1a6fa8',
-  twilightColor: '#b03a10'
+  twilightColor: '#6a2e18'
 };
 
 // Axe Y fixe pour la rotation (réutilisé chaque frame, pas de réallocation)

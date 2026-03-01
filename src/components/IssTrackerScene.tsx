@@ -7,13 +7,15 @@ import Starfield from './Starfield.tsx';
 import IssHud from './IssHud.tsx';
 import CameraController, { type CameraMode } from './CameraController.tsx';
 import IssLoadingScreen from './IssLoadingScreen.tsx';
+import GlobeHoverTooltip from './GlobeHoverTooltip.tsx';
 import ShootingStars from './ShootingStars.tsx';
 import { ISSPositionProvider } from './IssTracker/Iss/IssPosition.tsx';
 
 export default function IssTrackerScene() {
-  const [showOrbit,    setShowOrbit]    = useState(false);
-  const [cameraMode,   setCameraMode]   = useState<CameraMode>('track');
-  const [debugPaused,  setDebugPaused]  = useState(false);
+  const [showOrbit,           setShowOrbit]           = useState(false);
+  const [showCountryTracking, setShowCountryTracking] = useState(true);
+  const [cameraMode,          setCameraMode]          = useState<CameraMode>('track');
+  const [debugPaused,         setDebugPaused]         = useState(false);
 
   return (
     <ISSPositionProvider intervalMs={4000} paused={debugPaused}>
@@ -29,7 +31,7 @@ export default function IssTrackerScene() {
 
         <Starfield />
         <ShootingStars />
-        <GlobeWithISS variant='realistic' showOrbit={showOrbit} />
+        <GlobeWithISS variant='realistic' showOrbit={showOrbit} showCountryTracking={showCountryTracking} />
 
         <CameraController mode={cameraMode} />
 
@@ -55,11 +57,14 @@ export default function IssTrackerScene() {
       <IssHud
         showOrbit={showOrbit}
         onToggleOrbit={() => setShowOrbit(v => !v)}
+        showCountryTracking={showCountryTracking}
+        onToggleCountryTracking={() => setShowCountryTracking(v => !v)}
         cameraMode={cameraMode}
         onSetCameraMode={setCameraMode}
         debugPaused={debugPaused}
         onToggleDebugPause={() => setDebugPaused(v => !v)}
       />
+      <GlobeHoverTooltip />
     </div>
     </Suspense>
     </ISSPositionProvider>

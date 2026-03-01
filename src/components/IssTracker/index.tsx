@@ -6,11 +6,13 @@ import ISSMarker from './Iss/IssMarker.tsx';
 import IssOrbit from './Iss/IssOrbit.tsx';
 import RealisticGlobeContent from './GlobeVariants/RealisticGlobeContent.tsx';
 import SciFiGlobeContent from './GlobeVariants/SciFiGlobeContent.tsx';
+import GlobeCountryLayer from './GlobeVariants/GlobeCountryLayer.tsx';
 
 interface GlobeProps {
   position?: [number, number, number];
   variant?: 'realistic' | 'scifi';
   showOrbit?: boolean;
+  showCountryTracking?: boolean;
 }
 
 // Vitesse de rotation réelle de la Terre : 2π rad / jour sidéral (86 164 s)
@@ -24,7 +26,7 @@ function getInitialRotation(): number {
   return secondsSinceMidnightUTC * ROTATION_SPEED;
 }
 
-const GlobeWithISS: React.FC<GlobeProps> = ({ position = [0, 0, 0], variant = 'scifi', showOrbit = true }) => {
+const GlobeWithISS: React.FC<GlobeProps> = ({ position = [0, 0, 0], variant = 'scifi', showOrbit = true, showCountryTracking = true }) => {
   const globe = useMemo(() => new ThreeGlobe({ animateIn: false }), []);
   const groupRef = useRef<THREE.Group>(null!);
   const scaleFactor = 0.5 / globe.getGlobeRadius();
@@ -37,7 +39,12 @@ const GlobeWithISS: React.FC<GlobeProps> = ({ position = [0, 0, 0], variant = 's
     <group ref={groupRef} position={position} scale={[scaleFactor, scaleFactor, scaleFactor]} rotation={[0, getInitialRotation(), 0]}>
       <primitive object={globe} />
 
-      {variant === 'realistic' && <RealisticGlobeContent globe={globe} />}
+      {variant === 'realistic' && (
+        <>
+          <RealisticGlobeContent globe={globe} />
+          {showCountryTracking && <GlobeCountryLayer globe={globe} />}
+        </>
+      )}
       {variant === 'scifi' && <SciFiGlobeContent globe={globe} />}
 
       <ISSMarker globeRadius={100} altitude={15} />

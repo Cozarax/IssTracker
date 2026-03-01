@@ -69,7 +69,7 @@ const ISSMarker: React.FC<Props> = ({ globeRadius = 100, altitude = 15 }) => {
       ring.visible = true;
       ring.scale.setScalar(ease * RING_MAX_SCALE);
       // Fondu : opaque au début, invisible à la fin
-      mat.opacity = (1 - t) * (1 - t) * 0.55;
+      mat.opacity = (1 - t) * (1 - t) * 0.3;
     });
   });
 
@@ -87,7 +87,7 @@ const ISSMarker: React.FC<Props> = ({ globeRadius = 100, altitude = 15 }) => {
         >
           <ringGeometry args={[0.88, 1.0, 96]} />
           <meshBasicMaterial
-            color="#60d0ff"
+            color="#ffffff"
             transparent
             opacity={0}
             depthWrite={false}

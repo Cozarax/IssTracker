@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import useISSPosition from './IssTracker/Iss/IssPosition';
+import useCountryDetection from '../hooks/useCountryDetection';
 import { type CameraMode } from './CameraController';
 
 interface IssHudProps {
   showOrbit: boolean;
   onToggleOrbit: () => void;
+  showCountryTracking: boolean;
+  onToggleCountryTracking: () => void;
   cameraMode: CameraMode;
   onSetCameraMode: (mode: CameraMode) => void;
   debugPaused: boolean;
@@ -40,6 +43,13 @@ const CrosshairIcon = () => (
   </svg>
 );
 
+const LocationIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.485-2.015-4.5-4.5-4.5z" stroke="currentColor" strokeWidth="1" />
+    <circle cx="8" cy="6" r="1.5" fill="currentColor" />
+  </svg>
+);
+
 const TargetIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1" />
@@ -51,8 +61,9 @@ const TargetIcon = () => (
   </svg>
 );
 
-export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCameraMode, debugPaused, onToggleDebugPause }: IssHudProps) {
+export default function IssHud({ showOrbit, onToggleOrbit, showCountryTracking, onToggleCountryTracking, cameraMode, onSetCameraMode, debugPaused, onToggleDebugPause }: IssHudProps) {
   const { position, loading } = useISSPosition();
+  const { name: countryName } = useCountryDetection(position?.lat, position?.lng);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -580,6 +591,13 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
                   <span className="hud-val">{fmt(position?.velocity, 2)}</span>
                   <span className="hud-unit">km/s</span>
                 </div>
+                <div className="hud-row">
+                  <span className="hud-lbl">LOC</span>
+                  <span className="hud-val" style={{ fontSize: '12px' }}>
+                    {countryName ?? '---'}
+                  </span>
+                  <span className="hud-unit" />
+                </div>
               </div>
             )}
 
@@ -589,6 +607,16 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
                 <span className={`hud-toggle-chip ${showOrbit ? 'on' : 'off'}`}>
                   <span className={`hud-led ${showOrbit ? 'on' : 'off'}`} />
                   {showOrbit ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            </div>
+
+            <div className="hud-toggle-wrap">
+              <button className="hud-toggle" onClick={onToggleCountryTracking}>
+                <span className="hud-toggle-lbl">Ptr.Track</span>
+                <span className={`hud-toggle-chip ${showCountryTracking ? 'on' : 'off'}`}>
+                  <span className={`hud-led ${showCountryTracking ? 'on' : 'off'}`} />
+                  {showCountryTracking ? 'ON' : 'OFF'}
                 </span>
               </button>
             </div>
@@ -650,6 +678,11 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
             </span>
             <span className="mob-unit">km/s</span>
           </div>
+          <div className="mob-row">
+            <span className="mob-lbl">LOC</span>
+            <span className="mob-val">{countryName ?? '---'}</span>
+            <span className="mob-unit" />
+          </div>
         </div>
       </div>
 
@@ -672,6 +705,14 @@ export default function IssHud({ showOrbit, onToggleOrbit, cameraMode, onSetCame
           aria-label="Toggle camera mode"
         >
           {cameraMode === 'track' ? <TargetIcon /> : <CrosshairIcon />}
+        </button>
+        <button
+          className={`mob-btn ${showCountryTracking ? 'orbit-on' : 'orbit-off'}`}
+          onClick={onToggleCountryTracking}
+          data-tooltip={showCountryTracking ? 'Ptr.Track: ON' : 'Ptr.Track: OFF'}
+          aria-label="Toggle country tracking"
+        >
+          <LocationIcon />
         </button>
       </div>
     </>

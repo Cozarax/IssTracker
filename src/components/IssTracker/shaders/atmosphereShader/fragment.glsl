@@ -25,7 +25,7 @@ void main()
 
     float dayAlpha = smoothstep(-0.5, 0.0, sunOrientation);
 
-    float alpha = edgeAlpha * dayAlpha;
+    float alpha = edgeAlpha * dayAlpha * 0.65;
 
     // Final color
     gl_FragColor = vec4(color, alpha);
