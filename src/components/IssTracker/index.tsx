@@ -7,6 +7,7 @@ import IssOrbit from './Iss/IssOrbit.tsx';
 import RealisticGlobeContent from './GlobeVariants/RealisticGlobeContent.tsx';
 import SciFiGlobeContent from './GlobeVariants/SciFiGlobeContent.tsx';
 import GlobeCountryLayer from './GlobeVariants/GlobeCountryLayer.tsx';
+import { EARTH_ROTATION_SPEED } from '../../constants/earth.ts';
 
 interface GlobeProps {
   position?: [number, number, number];
@@ -15,15 +16,12 @@ interface GlobeProps {
   showCountryTracking?: boolean;
 }
 
-// Vitesse de rotation réelle de la Terre : 2π rad / jour sidéral (86 164 s)
-const ROTATION_SPEED = (2 * Math.PI) / 86164;
-
 // Angle initial : secondes écoulées depuis minuit UTC → position correcte de la Terre
 function getInitialRotation(): number {
   const now = new Date();
   const secondsSinceMidnightUTC =
     now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
-  return secondsSinceMidnightUTC * ROTATION_SPEED;
+  return secondsSinceMidnightUTC * EARTH_ROTATION_SPEED;
 }
 
 const GlobeWithISS: React.FC<GlobeProps> = ({ position = [0, 0, 0], variant = 'scifi', showOrbit = true, showCountryTracking = true }) => {
@@ -32,7 +30,7 @@ const GlobeWithISS: React.FC<GlobeProps> = ({ position = [0, 0, 0], variant = 's
   const scaleFactor = 0.5 / globe.getGlobeRadius();
 
   useFrame((_, delta) => {
-    groupRef.current.rotation.y += delta * ROTATION_SPEED;
+    groupRef.current.rotation.y += delta * EARTH_ROTATION_SPEED;
   });
 
   return (

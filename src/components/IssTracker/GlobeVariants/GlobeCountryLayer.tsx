@@ -15,8 +15,6 @@ const GlobeCountryLayer: React.FC<Props> = ({ globe }) => {
 
   const [hoverFeature, setHoverFeature] = useState<GeoFeature | null>(null);
   const hoverFeatureRef = useRef<GeoFeature | null>(null);
-  const hoverScreen = useRef({ x: 0, y: 0 });
-  const isHovering = useRef(false);
 
   // Pre-load GeoJSON so it's cached before first hover
   useEffect(() => { getFeatures(); }, []);
@@ -51,9 +49,6 @@ const GlobeCountryLayer: React.FC<Props> = ({ globe }) => {
   }, [globe]);
 
   const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
-    isHovering.current = true;
-    hoverScreen.current = { x: e.clientX, y: e.clientY };
-
     // Convert world-space intersection → group-local geographic space
     const group = e.object.parent!;
     const local = group.worldToLocal(e.point.clone()).normalize();
@@ -78,7 +73,6 @@ const GlobeCountryLayer: React.FC<Props> = ({ globe }) => {
   };
 
   const onPointerLeave = () => {
-    isHovering.current = false;
     hoverFeatureRef.current = null;
     setHoverFeature(null);
     document.dispatchEvent(new CustomEvent('globe-hover', { detail: null }));

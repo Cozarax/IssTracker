@@ -3,10 +3,9 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import useISSPosition from './IssTracker/Iss/IssPosition';
 import latLngToVector3 from '../utils/latLngToVector3';
+import { EARTH_ROTATION_SPEED } from '../constants/earth.ts';
 
 export type CameraMode = 'free' | 'track';
-
-const ROTATION_SPEED = (2 * Math.PI) / 86164;
 const GLOBE_SCALE    = 0.005;
 const ISS_WORLD_R    = 115 * GLOBE_SCALE;
 
@@ -27,7 +26,7 @@ function earthRotationNow(): number {
           + now.getUTCMinutes() * 60
           + now.getUTCSeconds()
           + now.getUTCMilliseconds() / 1000;
-  return s * ROTATION_SPEED;
+  return s * EARTH_ROTATION_SPEED;
 }
 
 function lerpAngle(a: number, b: number, t: number): number {
