@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import ThreeGlobe from 'three-globe';
+import { getFeatures } from '../../../hooks/useCountryDetection';
 
 
 interface Props {
@@ -20,10 +21,8 @@ const SciFiGlobeContent: React.FC<Props> = ({ globe }) => {
   }), []);
 
   useEffect(() => {
-    fetch('/data/custom.geo.json')
-      .then(res => res.json())
-      .then(data => {
-        globe.polygonsData(data.features);
+    getFeatures().then(features => {
+        globe.polygonsData(features);
 
         globe.globeMaterial(customMaterial)
           .atmosphereAltitude(0.01)
