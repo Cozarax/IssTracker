@@ -25,10 +25,6 @@ export default function IssLoadingScreen() {
           89%  { opacity: 0.5; }
           91%  { opacity: 0.8; }
         }
-        @keyframes ls-enter {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
         @keyframes ls-scan {
           from { background-position: 0 0; }
           to   { background-position: 0 80px; }
@@ -45,7 +41,6 @@ export default function IssLoadingScreen() {
           justify-content: center;
           gap: 36px;
           font-family: 'Share Tech Mono', 'Courier New', monospace;
-          animation: ls-enter 0.4s ease both;
           overflow: hidden;
         }
 

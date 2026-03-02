@@ -1,10 +1,10 @@
 import { useTexture } from '@react-three/drei';
-import * as THREE from 'three';
+import { type Texture, SRGBColorSpace } from 'three';
 
 type EarthTextures = {
-  earthDayTexture:       THREE.Texture;
-  earthNightTexture:     THREE.Texture;
-  specularCloudsTexture: THREE.Texture;
+  earthDayTexture: Texture;
+  earthNightTexture: Texture;
+  specularCloudsTexture: Texture;
 };
 
 // useTexture suspend le composant jusqu'au chargement complet —
@@ -16,10 +16,10 @@ const useEarthTextures = (): EarthTextures => {
     '/img/specularClouds.jpg',
   ]);
 
-  earthDayTexture.colorSpace       = THREE.SRGBColorSpace;
-  earthDayTexture.anisotropy       = 8;
-  earthNightTexture.colorSpace     = THREE.SRGBColorSpace;
-  earthNightTexture.anisotropy     = 8;
+  earthDayTexture.colorSpace = SRGBColorSpace;
+  earthDayTexture.anisotropy = 8;
+  earthNightTexture.colorSpace = SRGBColorSpace;
+  earthNightTexture.anisotropy = 8;
   specularCloudsTexture.anisotropy = 8;
 
   return { earthDayTexture, earthNightTexture, specularCloudsTexture };

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Vector3, BufferGeometry, BufferAttribute, LineBasicMaterial, Line, Group, type Material } from 'three';
 
 // ── configuration ──────────────────────────────────────────────────────────
 const POOL_SIZE    = 5;    // étoiles filantes simultanées max
@@ -10,18 +10,18 @@ const SPAWN_MIN    = 1.8;  // secondes min entre deux apparitions
 const SPAWN_MAX    = 7.0;  // secondes max entre deux apparitions
 
 // Vecteurs statiques pour le spawning (hors frame)
-const _n  = new THREE.Vector3();
-const _t1 = new THREE.Vector3();
-const _t2 = new THREE.Vector3();
-const _up = new THREE.Vector3(0, 1, 0);
-const _rt = new THREE.Vector3(1, 0, 0);
+const _n  = new Vector3();
+const _t1 = new Vector3();
+const _t2 = new Vector3();
+const _up = new Vector3(0, 1, 0);
+const _rt = new Vector3(1, 0, 0);
 
 // Vecteurs statiques pour la mise à jour frame (zéro allocation)
-const _head = new THREE.Vector3();
+const _head = new Vector3();
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-function spawnOnSphere(r: number, out: THREE.Vector3) {
+function spawnOnSphere(r: number, out: Vector3) {
   const phi   = Math.acos(1 - 2 * Math.random());
   const theta = Math.random() * Math.PI * 2;
   out.set(
@@ -32,7 +32,7 @@ function spawnOnSphere(r: number, out: THREE.Vector3) {
 }
 
 /** Direction aléatoire tangente à la sphère en `pos` — l'étoile passe "devant" le spectateur */
-function tangentDir(pos: THREE.Vector3, out: THREE.Vector3) {
+function tangentDir(pos: Vector3, out: Vector3) {
   _n.copy(pos).normalize();
   const ref = Math.abs(_n.y) < 0.85 ? _up : _rt;
   _t1.crossVectors(_n, ref).normalize();
@@ -48,10 +48,10 @@ function tangentDir(pos: THREE.Vector3, out: THREE.Vector3) {
 // ── types ────────────────────────────────────────────────────────────────────
 
 interface Star {
-  line:        THREE.Line;
+  line:        Line;
   active:      boolean;
-  startPos:    THREE.Vector3;
-  dir:         THREE.Vector3;
+  startPos:    Vector3;
+  dir:         Vector3;
   progress:    number; // 0 → 1
   duration:    number; // secondes
   totalDist:   number; // distance totale parcourue
@@ -61,27 +61,27 @@ interface Star {
 // ── composant ────────────────────────────────────────────────────────────────
 
 export default function ShootingStars() {
-  const groupRef = useRef<THREE.Group>(null!);
+  const groupRef = useRef<Group>(null!);
 
   const pool = useMemo<Star[]>(() => {
     return Array.from({ length: POOL_SIZE }, () => {
       const positions = new Float32Array(TRAIL_POINTS * 3);
       const colors    = new Float32Array(TRAIL_POINTS * 3);
 
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
+      const geo = new BufferGeometry();
+      geo.setAttribute('position', new BufferAttribute(positions, 3));
+      geo.setAttribute('color',    new BufferAttribute(colors,    3));
 
-      const mat  = new THREE.LineBasicMaterial({ vertexColors: true });
-      const line = new THREE.Line(geo, mat);
+      const mat  = new LineBasicMaterial({ vertexColors: true });
+      const line = new Line(geo, mat);
       line.visible = false;
       line.frustumCulled = false; // toujours rendu, la sphère est grande
 
       return {
         line,
         active:      false,
-        startPos:    new THREE.Vector3(),
-        dir:         new THREE.Vector3(),
+        startPos:    new Vector3(),
+        dir:         new Vector3(),
         progress:    0,
         duration:    1,
         totalDist:   0,
@@ -98,7 +98,7 @@ export default function ShootingStars() {
       pool.forEach(s => {
         g.remove(s.line);
         s.line.geometry.dispose();
-        (s.line.material as THREE.Material).dispose();
+        (s.line.material as Material).dispose();
       });
     };
   }, [pool]);

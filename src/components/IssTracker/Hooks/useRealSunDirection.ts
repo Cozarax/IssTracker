@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import SunCalc from 'suncalc';
-import * as THREE from 'three';
+import { Vector3 } from 'three';
 
 /**
  * Calcule la direction du soleil en espace LOCAL du globe (avant rotation).
@@ -18,9 +18,9 @@ import * as THREE from 'three';
  * RealisticGlobeContent le fait pivoter chaque frame (applyAxisAngle Y)
  * avant de l'envoyer aux shaders, où il est comparé à vNormal en espace monde.
  */
-function computeSunDirection(): THREE.Vector3 {
+function computeSunDirection(): Vector3 {
   const { altitude, azimuth } = SunCalc.getPosition(new Date(), 0, 0);
-  return new THREE.Vector3(
+  return new Vector3(
     -Math.sin(azimuth) * Math.cos(altitude),
     -Math.cos(azimuth) * Math.cos(altitude),
      Math.sin(altitude)
@@ -28,7 +28,7 @@ function computeSunDirection(): THREE.Vector3 {
 }
 
 export function useRealSunDirection(
-  sunDirection: THREE.Vector3,
+  sunDirection: Vector3,
   onUpdate: () => void
 ): void {
   useEffect(() => {

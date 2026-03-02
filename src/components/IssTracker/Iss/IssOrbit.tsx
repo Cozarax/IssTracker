@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
-import * as THREE from 'three';
+import { type Vector3 } from 'three';
 import * as satellite from 'satellite.js';
 import latLngToVector3 from '../../../utils/latLngToVector3';
 
@@ -16,8 +16,8 @@ const WHERETHEISS_TLE_URL = 'https://api.wheretheiss.at/v1/satellites/25544/tles
 const CELESTRAK_TLE_URL   = 'https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE';
 
 type Segments = {
-  pastPoints:   THREE.Vector3[];
-  futurePoints: THREE.Vector3[];
+  pastPoints:   Vector3[];
+  futurePoints: Vector3[];
   futureColors: [number, number, number][];
 };
 
@@ -45,7 +45,7 @@ async function fetchTLE(): Promise<{ line1: string; line2: string }> {
   throw new Error('TLE unavailable');
 }
 
-function propagate(satrec: satellite.SatRec, date: Date): THREE.Vector3 | null {
+function propagate(satrec: satellite.SatRec, date: Date): Vector3 | null {
   const pv = satellite.propagate(satrec, date);
   if (!pv.position || typeof pv.position === 'boolean') return null;
   const pos = pv.position as satellite.EciVec3<number>;
@@ -62,8 +62,8 @@ function propagate(satrec: satellite.SatRec, date: Date): THREE.Vector3 | null {
 }
 
 function buildSegments(satrec: satellite.SatRec, now: Date): Segments {
-  const pastPoints:   THREE.Vector3[]            = [];
-  const futurePoints: THREE.Vector3[]            = [];
+  const pastPoints:   Vector3[]            = [];
+  const futurePoints: Vector3[]            = [];
   const futureColors: [number, number, number][] = [];
 
   // Passé : de (now - 45min) → now

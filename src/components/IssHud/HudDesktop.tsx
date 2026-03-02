@@ -31,39 +31,35 @@ export default function HudDesktop({
             <span className="hud-title">ISS · Tracking</span>
           </div>
 
-          {loading && !position ? (
-            <div className="hud-loading">Acquiring signal<span>_</span></div>
-          ) : (
-            <div className="hud-body">
-              <div className="hud-row">
-                <span className="hud-lbl">LAT</span>
-                <span className="hud-val">{sign(position?.lat)}{fmt(position?.lat, 4)}</span>
-                <span className="hud-unit">°</span>
-              </div>
-              <div className="hud-row">
-                <span className="hud-lbl">LNG</span>
-                <span className="hud-val">{sign(position?.lng)}{fmt(position?.lng, 4)}</span>
-                <span className="hud-unit">°</span>
-              </div>
-              <div className="hud-row">
-                <span className="hud-lbl">ALT</span>
-                <span className="hud-val">{fmt(position?.altitude, 1)}</span>
-                <span className="hud-unit">km</span>
-              </div>
-              <div className="hud-row">
-                <span className="hud-lbl">VEL</span>
-                <span className="hud-val">{fmt(position?.velocity, 2)}</span>
-                <span className="hud-unit">km/s</span>
-              </div>
-              <div className="hud-row">
-                <span className="hud-lbl">LOC</span>
-                <span className="hud-val" style={{ fontSize: '12px' }}>
-                  {countryName ?? '---'}
-                </span>
-                <span className="hud-unit" />
-              </div>
+          <div className="hud-body">
+            <div className="hud-row">
+              <span className="hud-lbl">LAT</span>
+              <span className="hud-val">{position ? `${sign(position.lat)}${fmt(position.lat, 4)}` : '---'}</span>
+              <span className="hud-unit">°</span>
             </div>
-          )}
+            <div className="hud-row">
+              <span className="hud-lbl">LNG</span>
+              <span className="hud-val">{position ? `${sign(position.lng)}${fmt(position.lng, 4)}` : '---'}</span>
+              <span className="hud-unit">°</span>
+            </div>
+            <div className="hud-row">
+              <span className="hud-lbl">ALT</span>
+              <span className="hud-val">{position ? fmt(position.altitude, 1) : '---'}</span>
+              <span className="hud-unit">km</span>
+            </div>
+            <div className="hud-row">
+              <span className="hud-lbl">VEL</span>
+              <span className="hud-val">{position ? fmt(position.velocity, 2) : '---'}</span>
+              <span className="hud-unit">km/s</span>
+            </div>
+            <div className="hud-row">
+              <span className="hud-lbl">LOC</span>
+              <span className="hud-val" style={{ fontSize: '12px' }}>
+                {countryName ?? '---'}
+              </span>
+              <span className="hud-unit" />
+            </div>
+          </div>
 
           <div className="hud-toggle-wrap">
             <button className="hud-toggle" onClick={onToggleOrbit}>

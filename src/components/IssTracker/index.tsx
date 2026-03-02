@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { type Group } from 'three';
 import ThreeGlobe from 'three-globe';
 import ISSMarker from './Iss/IssMarker.tsx';
 import IssOrbit from './Iss/IssOrbit.tsx';
@@ -26,7 +26,7 @@ function getInitialRotation(): number {
 
 const GlobeWithISS: React.FC<GlobeProps> = ({ position = [0, 0, 0], variant = 'scifi', showOrbit = true, showCountryTracking = true }) => {
   const globe = useMemo(() => new ThreeGlobe({ animateIn: false }), []);
-  const groupRef = useRef<THREE.Group>(null!);
+  const groupRef = useRef<Group>(null!);
   const scaleFactor = 0.5 / globe.getGlobeRadius();
 
   useFrame((_, delta) => {

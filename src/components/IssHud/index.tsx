@@ -29,8 +29,7 @@ export default function IssHud({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 80);
-    return () => clearTimeout(t);
+    setMounted(true);
   }, []);
 
   const sharedProps = {

@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Vector3, Uniform, Color, ShaderMaterial, SphereGeometry, BackSide, Mesh, type Material } from 'three';
 import ThreeGlobe from 'three-globe';
 import useEarthTextures from '../Hooks/useEarthTextures';
 import useGlobeGUI from '../Hooks/useGlobeGui';
@@ -20,33 +20,33 @@ const atmosphereParams = {
 };
 
 // Axe Y fixe pour la rotation (réutilisé chaque frame, pas de réallocation)
-const Y_AXIS = new THREE.Vector3(0, 1, 0);
+const Y_AXIS = new Vector3(0, 1, 0);
 
 const RealisticGlobeContent: React.FC<Props> = ({ globe }) => {
   const textures = useEarthTextures();
 
   // Direction solaire en espace géographique local (avant rotation du groupe globe).
   // Mise à jour par SunCalc toutes les minutes via useRealSunDirection.
-  const sunDirection = useMemo(() => new THREE.Vector3(0, 0, 1), []);
+  const sunDirection = useMemo(() => new Vector3(0, 0, 1), []);
 
   // Vecteur de travail réutilisé chaque frame pour éviter les allocations
-  const rotatedSun = useMemo(() => new THREE.Vector3(), []);
+  const rotatedSun = useMemo(() => new Vector3(), []);
 
   const uniforms = useMemo(
     () => ({
-      uDayTexture: new THREE.Uniform(textures.earthDayTexture),
-      uNightTexture: new THREE.Uniform(textures.earthNightTexture),
-      uSpecularCloudsTexture: new THREE.Uniform(textures.specularCloudsTexture),
-      uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
-      uAtmosphereDayColor: new THREE.Uniform(new THREE.Color(atmosphereParams.dayColor)),
-      uAtmospherTwilightColor: new THREE.Uniform(new THREE.Color(atmosphereParams.twilightColor))
+      uDayTexture: new Uniform(textures.earthDayTexture),
+      uNightTexture: new Uniform(textures.earthNightTexture),
+      uSpecularCloudsTexture: new Uniform(textures.specularCloudsTexture),
+      uSunDirection: new Uniform(new Vector3(0, 0, 1)),
+      uAtmosphereDayColor: new Uniform(new Color(atmosphereParams.dayColor)),
+      uAtmospherTwilightColor: new Uniform(new Color(atmosphereParams.twilightColor))
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [textures]
   );
 
   const material = useMemo(
-    () => new THREE.ShaderMaterial({
+    () => new ShaderMaterial({
       vertexShader: earthVertexShader,
       fragmentShader: earthFragmentShader,
       uniforms
@@ -56,27 +56,27 @@ const RealisticGlobeContent: React.FC<Props> = ({ globe }) => {
 
   const atmosphereUniforms = useMemo(
     () => ({
-      uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
-      uAtmosphereDayColor: new THREE.Uniform(new THREE.Color(atmosphereParams.dayColor)),
-      uAtmospherTwilightColor: new THREE.Uniform(new THREE.Color(atmosphereParams.twilightColor))
+      uSunDirection: new Uniform(new Vector3(0, 0, 1)),
+      uAtmosphereDayColor: new Uniform(new Color(atmosphereParams.dayColor)),
+      uAtmospherTwilightColor: new Uniform(new Color(atmosphereParams.twilightColor))
     }),
     []
   );
 
-  const atmosphereGeometry = useMemo(() => new THREE.SphereGeometry(100, 64, 64), []);
+  const atmosphereGeometry = useMemo(() => new SphereGeometry(100, 64, 64), []);
   const atmosphereMaterial = useMemo(
-    () => new THREE.ShaderMaterial({
+    () => new ShaderMaterial({
       vertexShader: atmosphereVertexShader,
       fragmentShader: atmosphereFragmentShader,
       uniforms: atmosphereUniforms,
-      side: THREE.BackSide,
+      side: BackSide,
       transparent: true
     }),
     [atmosphereUniforms]
   );
 
   const atmosphere = useMemo(() => {
-    const mesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    const mesh = new Mesh(atmosphereGeometry, atmosphereMaterial);
     mesh.scale.set(1.04, 1.04, 1.04);
     return mesh;
   }, [atmosphereGeometry, atmosphereMaterial]);
@@ -118,7 +118,7 @@ const RealisticGlobeContent: React.FC<Props> = ({ globe }) => {
     return () => {
       globe.remove(atmosphere);
       atmosphere.geometry.dispose();
-      (atmosphere.material as THREE.Material).dispose();
+      (atmosphere.material as Material).dispose();
     };
   }, [globe, material, atmosphere]);
 

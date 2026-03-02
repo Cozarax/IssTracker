@@ -21,16 +21,25 @@ const ISSPositionContext = createContext<ISSPositionState>({
 });
 
 // ── Fetch ──────────────────────────────────────────────────────────────────────
+const parseISSData = (data: Record<string, number>): ISSPosition => ({
+  lat:      data.latitude,
+  lng:      data.longitude,
+  altitude: data.altitude,
+  velocity: data.velocity / 3600, // km/h → km/s
+});
+
 const fetchISSPosition = async (): Promise<ISSPosition> => {
+  // Consomme le fetch anticipé lancé depuis le <head> si disponible
+  const w = window as typeof window & { __issEarlyFetch?: Promise<Record<string, number> | null> };
+  if (w.__issEarlyFetch) {
+    const early = w.__issEarlyFetch;
+    w.__issEarlyFetch = undefined;
+    const data = await early;
+    if (data?.latitude) return parseISSData(data);
+  }
   const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const data = await response.json();
-  return {
-    lat:      data.latitude,
-    lng:      data.longitude,
-    altitude: data.altitude,
-    velocity: data.velocity / 3600, // km/h → km/s
-  };
+  return parseISSData(await response.json());
 };
 
 // ── Provider — un seul fetch pour toute l'app ──────────────────────────────────

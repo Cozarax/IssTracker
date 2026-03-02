@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { ShaderMaterial, BufferGeometry, BufferAttribute } from 'three';
 
 const vertexShader = `
   attribute float aPhase;
@@ -34,7 +34,7 @@ const fragmentShader = `
 const COUNT = 4000;
 
 export default function Starfield() {
-  const materialRef = useRef<THREE.ShaderMaterial>(null!);
+  const materialRef = useRef<ShaderMaterial>(null!);
 
   const { geometry, material } = useMemo(() => {
     const positions = new Float32Array(COUNT * 3);
@@ -56,13 +56,13 @@ export default function Starfield() {
       sizes[i]  = 0.8 + Math.random() * 2.5;
     }
 
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geo.setAttribute('aPhase',   new THREE.BufferAttribute(phases, 1));
-    geo.setAttribute('aSpeed',   new THREE.BufferAttribute(speeds, 1));
-    geo.setAttribute('aSize',    new THREE.BufferAttribute(sizes, 1));
+    const geo = new BufferGeometry();
+    geo.setAttribute('position', new BufferAttribute(positions, 3));
+    geo.setAttribute('aPhase',   new BufferAttribute(phases, 1));
+    geo.setAttribute('aSpeed',   new BufferAttribute(speeds, 1));
+    geo.setAttribute('aSize',    new BufferAttribute(sizes, 1));
 
-    const mat = new THREE.ShaderMaterial({
+    const mat = new ShaderMaterial({
       vertexShader,
       fragmentShader,
       uniforms: { uTime: { value: 0 } },

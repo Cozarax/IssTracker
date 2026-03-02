@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import * as THREE from 'three';
+import { SphereGeometry, MeshBasicMaterial } from 'three';
 import ThreeGlobe from 'three-globe';
 import { type ThreeEvent } from '@react-three/fiber';
 import useISSPosition from '../Iss/IssPosition';
@@ -22,9 +22,9 @@ const GlobeCountryLayer: React.FC<Props> = ({ globe }) => {
   useEffect(() => { getFeatures(); }, []);
 
   // Invisible raycasting sphere — slightly proud of the globe surface
-  const sphereGeom = useMemo(() => new THREE.SphereGeometry(100.5, 32, 32), []);
+  const sphereGeom = useMemo(() => new SphereGeometry(100.5, 32, 32), []);
   const sphereMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
+    () => new MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     []
   );
 

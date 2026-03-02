@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import * as THREE from 'three';
+import { MeshStandardMaterial, Color, DoubleSide } from 'three';
 import ThreeGlobe from 'three-globe';
 import { getFeatures } from '../../../hooks/useCountryDetection';
 
@@ -10,14 +10,14 @@ interface Props {
 
 const SciFiGlobeContent: React.FC<Props> = ({ globe }) => {
 
-  const customMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-    color: new THREE.Color('#00ffff'),
+  const customMaterial = useMemo(() => new MeshStandardMaterial({
+    color: new Color('#00ffff'),
     metalness: 0.9,
     roughness: 0.1,
     transparent: true,
     opacity: 0.5,
     depthWrite: false,
-    side: THREE.DoubleSide
+    side: DoubleSide
   }), []);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
+import { DoubleSide, type Group, type Mesh, type MeshBasicMaterial } from 'three';
 import latLngToVector3 from '../../../utils/latLngToVector3';
 import useISSPosition from './IssPosition';
 
@@ -23,8 +23,8 @@ function easeOutCubic(t: number) {
 }
 
 const ISSMarker: React.FC<Props> = ({ globeRadius = 100, altitude = 15 }) => {
-  const groupRef   = useRef<THREE.Group>(null!);
-  const ringsRef   = useRef<(THREE.Mesh | null)[]>([]);
+  const groupRef   = useRef<Group>(null!);
+  const ringsRef   = useRef<(Mesh | null)[]>([]);
   const rippleStart = useRef<number>(-999);
   const prevLatLng  = useRef<{ lat: number; lng: number } | null>(null);
 
@@ -55,7 +55,7 @@ const ISSMarker: React.FC<Props> = ({ globeRadius = 100, altitude = 15 }) => {
 
     ringsRef.current.forEach((ring, i) => {
       if (!ring) return;
-      const mat      = ring.material as THREE.MeshBasicMaterial;
+      const mat      = ring.material as MeshBasicMaterial;
       const ringTime = elapsed - i * RING_DELAY;
 
       if (ringTime <= 0 || ringTime >= RIPPLE_DURATION) {
@@ -91,7 +91,7 @@ const ISSMarker: React.FC<Props> = ({ globeRadius = 100, altitude = 15 }) => {
             transparent
             opacity={0}
             depthWrite={false}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
           />
         </mesh>
       ))}

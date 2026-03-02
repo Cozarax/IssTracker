@@ -1,9 +1,9 @@
-import * as THREE from 'three';
+import { type ShaderMaterial } from 'three';
 import { useEffect } from 'react';
 
 interface UseGlobeGUIParams {
-  earthMaterial: THREE.ShaderMaterial;
-  atmosphereMaterial: THREE.ShaderMaterial;
+  earthMaterial: ShaderMaterial;
+  atmosphereMaterial: ShaderMaterial;
   atmosphereParameters: {
     atmosphereDayColor: string;
     atmosphereTwilightColor: string;
