@@ -1,6 +1,7 @@
 import { type ISSPosition } from '../IssTracker/Iss/IssPosition';
 import { type CameraMode } from '../CameraController';
 import { fmt, sign } from './utils';
+import { CameraIcon } from './icons';
 
 interface Props {
   mounted: boolean;
@@ -23,6 +24,15 @@ export default function HudDesktop({
 }: Props) {
   return (
     <div className={`hud-root${mounted ? ' hud-visible' : ''}`}>
+      <button
+        className={`hud-cam-float${cameraMode === 'track' ? ' cam-track' : ''}`}
+        onClick={() => onSetCameraMode(cameraMode === 'free' ? 'track' : 'free')}
+        aria-label="Toggle camera mode"
+      >
+        <CameraIcon />
+        <span>{cameraMode === 'track' ? 'Lock Cam' : 'Free Cam'}</span>
+      </button>
+
       <div className="hud-frame">
         <div className="hud-panel">
 
@@ -81,24 +91,9 @@ export default function HudDesktop({
             </button>
           </div>
 
-          <div className="hud-cam-wrap">
-            <div className="hud-cam-row">
-              <span className="hud-cam-lbl">Cam.View</span>
-              <div className="hud-cam-btns">
-                <button
-                  className={`hud-cam-btn ${cameraMode === 'free' ? 'active' : ''}`}
-                  onClick={() => onSetCameraMode('free')}
-                >Free</button>
-                <button
-                  className={`hud-cam-btn ${cameraMode === 'track' ? 'active' : ''}`}
-                  onClick={() => onSetCameraMode('track')}
-                >Track ISS</button>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
+
     </div>
   );
 }

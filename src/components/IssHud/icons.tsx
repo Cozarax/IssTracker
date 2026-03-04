@@ -27,6 +27,15 @@ export const TargetIcon = () => (
   </svg>
 );
 
+export const CameraIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+    <rect x="1" y="4" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1" />
+    <circle cx="8" cy="9" r="2.5" stroke="currentColor" strokeWidth="1" />
+    <path d="M5.5 4V3.5A1 1 0 0 1 6.5 2.5h3A1 1 0 0 1 10.5 3.5V4" stroke="currentColor" strokeWidth="1" />
+    <circle cx="12.5" cy="6.5" r="0.75" fill="currentColor" />
+  </svg>
+);
+
 export const LocationIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.485-2.015-4.5-4.5-4.5z" stroke="currentColor" strokeWidth="1" />

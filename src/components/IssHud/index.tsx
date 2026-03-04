@@ -5,7 +5,6 @@ import { type CameraMode } from '../CameraController';
 import HudDebugBadge from './HudDebugBadge';
 import HudDesktop from './HudDesktop';
 import HudMobile from './HudMobile';
-import './hud.css';
 
 interface IssHudProps {
   showOrbit: boolean;

@@ -1,0 +1,17 @@
+.globe-tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 200;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.88);
+  background: rgba(2,4,10,0.78);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 5px;
+  padding: 5px 10px;
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  user-select: none;
+}
