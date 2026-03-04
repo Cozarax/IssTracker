@@ -1,4 +1,5 @@
 import { useState, Suspense, lazy } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { type CameraMode } from './CameraController.tsx';
 import IssHud from './IssHud.tsx';
 import IssLoadingScreen from './IssLoadingScreen.tsx';
@@ -46,5 +47,6 @@ export default function IssTrackerScene() {
     </div>
     </GlobeHoverProvider>
     </ISSPositionProvider>
+    <Analytics />
   );
 }
