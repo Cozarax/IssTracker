@@ -17,6 +17,7 @@ export default function IssTrackerScene() {
   const [sceneReady,          setSceneReady]          = useState(false);
 
   return (
+    <>
     <ISSPositionProvider intervalMs={4000} paused={debugPaused}>
     <GlobeHoverProvider>
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -48,5 +49,6 @@ export default function IssTrackerScene() {
     </GlobeHoverProvider>
     </ISSPositionProvider>
     <Analytics />
+    </>
   );
 }
