@@ -2,9 +2,27 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ISS Tracker — Live International Space Station Position</title>
+    <meta name="description" content="Track the International Space Station in real time on an interactive 3D globe. See live position, altitude, velocity and orbit path." />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ISS Tracker — Live International Space Station Position" />
+    <meta property="og:description" content="Track the International Space Station in real time on an interactive 3D globe. See live position, altitude, velocity and orbit path." />
+    <meta property="og:url" content="https://iss-tracker-mu.vercel.app" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- X (Twitter) Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="ISS Tracker — Live International Space Station Position" />
+    <meta name="twitter:description" content="Track the International Space Station in real time on an interactive 3D globe. See live position, altitude, velocity and orbit path." />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Space Station Tracker</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="canonical" href="https://iss-tracker-mu.vercel.app" />
     <link rel="preconnect" href="https://api.wheretheiss.at" />
     <script>
       window.__issEarlyFetch = fetch('https://api.wheretheiss.at/v1/satellites/25544')
